@@ -6,6 +6,9 @@
 trigger:
 - master
 
+variables:
+  tag: '$(Build.BuildId)'
+
 pool:
   vmImage: ubuntu-latest
 
@@ -21,3 +24,7 @@ steps:
   displayName: 'npm install and build'
   env:
     NODE_OPTIONS: --max_old_space_size=16384
+  
+- script: |
+    dir
+  displayName: 'list cwd contents (verify build)'
