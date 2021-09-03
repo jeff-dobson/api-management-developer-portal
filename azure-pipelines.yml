@@ -8,23 +8,67 @@ trigger:
 
 variables:
   tag: '$(Build.BuildId)'
+  resource_group_tfstate: 'ApimRG'
+  product: 'developer-portal'
 
-pool:
-  vmImage: ubuntu-latest
+stages:
+- stage: Build
+  displayName: 'Build Developer Portal'
+  jobs:
+  - job: Build
+    displayName: 'Build'
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+    - task: NodeTool@0
+      inputs:
+        versionSpec: '10.x'
+      displayName: 'Install Node.js'
 
-steps:
-- task: NodeTool@0
-  inputs:
-    versionSpec: '10.x'
-  displayName: 'Install Node.js'
+    - script: |
+        npm install
+        npm run build
+      displayName: 'npm install and build'
+      env:
+        NODE_OPTIONS: --max_old_space_size=16384
+      
+    - script: |
+        dir
+      displayName: 'list cwd contents (verify build)'
+- stage: 'Provision'
+  displayName: "Terraforming"
+  dependsOn: Build
+  variables:
+    resource_group_name: 'ApimRG'
+    env: 'dev'
+    apim_name: 'TFApim'
+    region: 'east us'
+  jobs:
+  - job: Provision
+    displayName: 'Provisioning APIM'
+    pool:
+      vmImage: ubuntu-latest
+    variables:
+      group: TFEnvVars
+    steps:
+    - task: qetza.replacetokens.replacetokens-task.replacetokens@3
+      displayName: 'Replace tokens in **/*.tfvars'
+      inputs:
+        rootDirectory: '$(System.DefaultWorkingDirectory)/infrastructure/apim'
+        targetFiles: '**/*.tfvars'
+        escapeType: none
+        tokenPrefix: '__'
+        tokenSuffix: '__'
+        enableTelemetry: false
 
-- script: |
-    npm install
-    npm run build
-  displayName: 'npm install and build'
-  env:
-    NODE_OPTIONS: --max_old_space_size=16384
-  
-- script: |
-    dir
-  displayName: 'list cwd contents (verify build)'
+    - script: |
+        set -e
+
+        terraform init -input=false
+        terraform apply -input=false -auto-approve
+      name: RunTerraform
+      env:
+        ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+        ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+        ARM_TENANT_ID: $(ARM_TENANT_ID)
+        ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
