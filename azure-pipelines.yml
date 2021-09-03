@@ -51,16 +51,14 @@ stages:
     variables:
       group: TFEnvVars
     steps:
-    - task: qetza.replacetokens.replacetokens-task.replacetokens@3
-      displayName: 'Replace tokens in **/*.tfvars'
+    - task: ReplaceInFilesTextByText@2
       inputs:
-        rootDirectory: '$(System.DefaultWorkingDirectory)/infrastructure/apim'
-        targetFiles: '**/*.tfvars'
-        escapeType: none
-        tokenPrefix: '__'
-        tokenSuffix: '__'
-        enableTelemetry: false
-
+        parameterSearchDirectory: '$(Build.SourcesDirectory)/Infrastructure/apim'
+        parameterSearchText: '__resource_group_name__'
+        parameterReplaceText: 'ApimRG'
+        parameterTypeOfSearch: 'filesSearchPattern'
+        parameterFilesPattern: '*.tfvars'
+    
     - script: |
         set -e
 
