@@ -51,17 +51,25 @@ stages:
     variables:
       group: TFEnvVars
     steps:
-    - task: ReplaceInFilesTextByText@2
-      inputs:
-        parameterSearchDirectory: '$(Build.SourcesDirectory)/Infrastructure/apim'
-        parameterSearchText: '__resource_group_name__'
-        parameterReplaceText: 'ApimRG'
-        parameterTypeOfSearch: 'filesSearchPattern'
-        parameterFilesPattern: '*.tfvars'
+    - task: qetza.replacetokens.replacetokens-task.replacetokens@3
+    displayName: 'Replace tokens in **/*.tfvars'
+    inputs:
+      rootDirectory: '$(System.DefaultWorkingDirectory)/infrastructure/apim'
+      targetFiles: '**/*.tfvars'
+      escapeType: none
+      tokenPrefix: '__'
+      tokenSuffix: '__'
+      enableTelemetry: false
     
+    - task: TerraformInstaller@0
+    displayName: 'Install Terraform 0.12.29'
+    inputs:
+      terraformVersion: 0.12.29
+
     - script: |
         set -e
 
+        cd $(System.DefaultWorkingDirectory)/infrastructure/apim
         terraform init -input=false
         terraform apply -input=false -auto-approve
       name: RunTerraform
