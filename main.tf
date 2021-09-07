@@ -14,17 +14,23 @@ variable "apim_name" {
   type  = string
 }
 
-provider "azurerm" {
-  features {}
-}
-
 terraform {
+  required_providers {
+    azurerm = {
+        source  = "hashicorp/azurerm"
+        version = "=2.46.0"
+    }
+  }
   backend "azurerm" {
       resource_group_name = "ApimRG"
       storage_account_name = "tfstorageaccountapim"
       container_name = "tfstate"
       key = "terraform.tfstate"
   }
+}
+
+provider "azurerm" {
+  features {}
 }
 
 resource "azurerm_resource_group" "rg" {
