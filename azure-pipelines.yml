@@ -1,8 +1,3 @@
-# Node.js
-# Build a general Node.js project with npm.
-# Add steps that analyze code, save build artifacts, deploy, and more:
-# https://docs.microsoft.com/azure/devops/pipelines/languages/javascript
-
 trigger:
 - master
 
@@ -51,20 +46,24 @@ stages:
     variables:
       group: TFEnvVars
     steps:
-    - task: qetza.replacetokens.replacetokens-task.replacetokens@3
-      displayName: 'Replace tokens in **/*.tfvars'
+    - task: replacetokens@4
       inputs:
         rootDirectory: '$(System.DefaultWorkingDirectory)/infrastructure/apim'
         targetFiles: '**/*.tfvars'
-        escapeType: none
-        tokenPrefix: '__'
-        tokenSuffix: '__'
-        enableTelemetry: false
-    
+        encoding: 'auto'
+        tokenPattern: 'rm'
+        writeBOM: true
+        escapeType: 'none'
+        actionOnMissing: 'warn'
+        keepToken: false
+        actionOnNoFiles: 'continue'
+        enableTransforms: false
+        useLegacyPattern: false
+        enableTelemetry: true
+       
     - task: TerraformInstaller@0
-      displayName: 'Install Terraform 0.12.29'
       inputs:
-        terraformVersion: 0.12.29
+        terraformVersion: '0.12.3'
 
     - script: |
         set -e
