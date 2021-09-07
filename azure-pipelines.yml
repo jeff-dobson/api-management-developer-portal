@@ -44,7 +44,7 @@ stages:
     pool:
       vmImage: ubuntu-latest
     variables:
-      group: ApimTFEnvVars
+    - group: ApimTFEnvVars
     steps:
     - task: qetza.replacetokens.replacetokens-task.replacetokens@4
       inputs:
