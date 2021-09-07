@@ -48,7 +48,7 @@ stages:
     steps:
     - task: qetza.replacetokens.replacetokens-task.replacetokens@4
       inputs:
-        rootDirectory: '$(System.DefaultWorkingDirectory)/infrastructure/apim'
+        rootDirectory: '$(System.DefaultWorkingDirectory)'
         targetFiles: '**/*.tfvars'
         encoding: 'auto'
         tokenPattern: 'rm'
@@ -63,12 +63,11 @@ stages:
        
     - task: TerraformInstaller@0
       inputs:
-        terraformVersion: '0.12.3'
+        terraformVersion: '1.0.6'
 
     - script: |
         set -e
 
-        cd $(System.DefaultWorkingDirectory)/infrastructure/apim
         terraform init -input=false
         terraform apply -input=false -auto-approve
       name: RunTerraform
