@@ -46,7 +46,7 @@ stages:
     variables:
       group: TFEnvVars
     steps:
-    - task: replacetokens@4
+    - task: qetza.replacetokens.replacetokens-task.replacetokens@4
       inputs:
         rootDirectory: '$(System.DefaultWorkingDirectory)/infrastructure/apim'
         targetFiles: '**/*.tfvars'
