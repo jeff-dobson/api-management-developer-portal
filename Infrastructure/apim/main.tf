@@ -6,7 +6,7 @@ variable "resource_group_name" {
   type  = string
 }
 
-variable "azure_region" {
+variable "region" {
   type  = string
 }
 
@@ -29,7 +29,7 @@ terraform {
 
 resource "azurerm_resource_group" "rg" {
   name     = var.resource_group_name
-  location = var.azure_region
+  location = var.region
 }
 
 resource "azurerm_api_management" "example" {
