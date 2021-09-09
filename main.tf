@@ -41,11 +41,6 @@ provider "azurerm" {
   features {}
 }
 
-#resource "azurerm_resource_group" "rg" {
-#  name     = var.resource_group_name
-#  location = var.region
-#}
-
 /* resource "azurerm_api_management" "example" {
   name                = var.apim_name
   location            = azurerm_resource_group.rg.location
