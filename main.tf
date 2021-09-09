@@ -1,7 +1,3 @@
-variable "env" {
-  type  = string
-}
-
 variable "resource_group_name" {
   type  = string
 }
@@ -14,6 +10,18 @@ variable "apim_name" {
   type  = string
 }
 
+variable "backend_storage_account_name" {
+  type = string
+}
+
+variable "backend_container_name" {
+  type = string
+}
+
+variable "dev_portal_storage_account_name" {
+  type = string
+}
+
 terraform {
   required_providers {
     azurerm = {
@@ -22,24 +30,23 @@ terraform {
     }
   }
   backend "azurerm" {
-      resource_group_name = "ApimRG"
-      storage_account_name = "tfstorageaccountapim"
-      container_name = "tfstate"
+      resource_group_name = var.resource_group_name
+      storage_account_name = var.backend_storage_account_name #"tfstorageaccountapim"
+      container_name = var.backend_container_name #"tfstate"
       key = "terraform.tfstate"
   }
 }
 
 provider "azurerm" {
   features {}
-  version = "~> 2.49.0"
 }
 
-resource "azurerm_resource_group" "rg" {
-  name     = var.resource_group_name
-  location = var.region
-}
+#resource "azurerm_resource_group" "rg" {
+#  name     = var.resource_group_name
+#  location = var.region
+#}
 
-resource "azurerm_api_management" "example" {
+/* resource "azurerm_api_management" "example" {
   name                = var.apim_name
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
@@ -47,10 +54,10 @@ resource "azurerm_api_management" "example" {
   publisher_email     = "publisher-email@no.com"
 
   sku_name = "Developer_1"
-}
+} */
 
 resource "azurerm_storage_account" "static_storage" {
-  name                     = "${var.env}stor"
+  name                     = var.dev_portal_storage_account_name
   resource_group_name      = azurerm_resource_group.rg.name
   location                 = azurerm_resource_group.rg.location
   account_kind             = "StorageV2"

@@ -2,9 +2,11 @@ trigger:
 - master
 
 variables:
-  tag: '$(Build.BuildId)'
-  resource_group_tfstate: 'ApimRG'
-  product: 'developer-portal'
+  resource_group_name: 'ApimRG'
+  region: 'East US'
+  dev_portal_storage_account_name: 'DevPortalSA'
+  apim_name: 'TFApim'
+  sas_token: $(ARM_SAS_TOKEN)
 
 stages:
 - stage: Build
@@ -15,6 +17,22 @@ stages:
     pool:
       vmImage: ubuntu-latest
     steps:
+    - task: qetza.replacetokens.replacetokens-task.replacetokens@4
+      inputs:
+        rootDirectory: '$(System.DefaultWorkingDirectory)/src'
+        targetFiles: '**/*.json'
+        encoding: 'auto'
+        tokenPattern: 'rm'
+        writeBOM: true
+        escapeType: 'none'
+        actionOnMissing: 'warn'
+        keepToken: false
+        actionOnNoFiles: 'continue'
+        enableTransforms: false
+        useLegacyPattern: false
+        enableTelemetry: true
+      displayName: 'Replace Developer Portal Configuration Values'
+
     - task: NodeTool@0
       inputs:
         versionSpec: '10.x'
@@ -22,8 +40,8 @@ stages:
 
     - script: |
         npm install
-        npm run build
-      displayName: 'npm install and build'
+        npm build
+      displayName: 'NPM Install and Build'
       env:
         NODE_OPTIONS: --max_old_space_size=16384
       
@@ -34,10 +52,8 @@ stages:
   displayName: "Terraforming"
   dependsOn: Build
   variables:
-    resource_group_name: 'ApimRG'
-    env: 'dev'
-    apim_name: 'TFApim'
-    region: 'east us'
+    backend_storage_account_name: 'tfstorageaccountapim'
+    backend_container_name: 'tfstate'
   jobs:
   - job: Provision
     displayName: 'Provisioning APIM'
@@ -77,3 +93,18 @@ stages:
         ARM_TENANT_ID: $(ARM_TENANT_ID)
         ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
         ARM_ACCESS_KEY: $(ARM_ACCESS_KEY)
+        ARM_SKIP_PROVIDER_REGISTRATION: true
+- stage: 'Deploy'
+  displayName: 'Deploying Developer Portal'
+  dependsOn: Provision
+  jobs:
+  - job: 'Deploy'
+    steps:
+    - task: AzureFileCopy@4
+      inputs:
+        SourcePath: '$(Build.SourcesDirectory)/dist'
+        azureSubscription: USCW - AppMod Practice
+        destination: azureBlob
+        storage: $(dev_portal_storage_account_name)
+        containerName: '$web'
+        AdditionalArgumentsForBlobCopy: --recursive=true
